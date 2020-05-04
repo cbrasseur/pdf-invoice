@@ -7,7 +7,7 @@
     $lang['from']     = 'Facturé par';
     $lang['product']  = 'Produit';
     $lang['qty']      = 'Quantité';
-    $lang['price']    = 'Prix unit. HT';
+    $lang['price']    = 'Prix';
     $lang['discount'] = 'Réduction';
     $lang['vat']      = 'TVA';
     $lang['total']    = 'Total';
