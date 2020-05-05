@@ -56,6 +56,8 @@ class InvoicePrinter extends FPDF
     protected $displayToFromHeaders = true;
     protected $columns;
 
+    protected $isRental = false;
+
     public function __construct($size = 'A4', $currency = '$', $language = 'en')
     {
         $this->items = [];
@@ -269,21 +271,22 @@ class InvoicePrinter extends FPDF
         }
     }
 
-    // public function addItem($item, $description, $quantity, $price, $total)
-    // {
-    //     $p['item'] = $item;
-    //     $p['description'] = $this->br2nl($description);
-    //     $p['quantity'] = $quantity;
-    //     $p['price'] = $price;
-    //     $p['total'] = $total;
-    //     $this->items[] = $p;
-    // }
-
-    public function addItem($item, $description, $price)
+    public function addItem($item, $description, $price, $model = null, $start = null, $stop = null)
     {
         $p['item'] = $item;
         $p['description'] = $this->br2nl($description);
         $p['price'] = $price;
+        if (isset($model)) {
+            $p['model'] = $model;
+        }
+        if (isset($start, $stop)) {
+            $dtStart = new \DateTime($start);
+            $dtStop = new \DateTime($stop);
+            $p['start_stop'] = "Le " . $dtStart->format('d/m/Y') . ", de " . $dtStart->format('H:i') . " à " . $dtStop->format('H:i');
+        }
+        if(isset($p['model'], $p['start_stop'])) {
+            $this->isRental = true;
+        }
         $this->items[] = $p;
     }
 
@@ -490,6 +493,10 @@ class InvoicePrinter extends FPDF
         }
         //Table header
         if (!isset($this->productsEnded)) {
+            if ($this->isRental) {
+                $this->columns = 4;
+                $this->firstColumnWidth = 35;
+            }
             $width_other = ($this->document['w'] - $this->margins['l'] - $this->margins['r'] - $this->firstColumnWidth - ($this->columns * $this->columnSpacing)) / ($this->columns - 1);
             $this->SetTextColor(50, 50, 50);
             $this->Ln(4);
@@ -498,9 +505,18 @@ class InvoicePrinter extends FPDF
             $this->Cell($this->firstColumnWidth, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->lang['product'], self::ICONV_CHARSET_INPUT)),
                 0, 0, 'L', 0);
             $this->Cell($this->columnSpacing, 10, '', 0, 0, 'L', 0);
+            if ($this->isRental) {
+                $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper('Modèle', self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
+                $this->Cell($this->columnSpacing, 10, '', 0, 0, 'L', 0);
+                $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper('Horaires', self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
+                $this->Cell($this->columnSpacing, 10, '', 0, 0, 'L', 0);
+                $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->lang['price'], self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
+            }
+            else {
+                $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->lang['price'], self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
+            }
             // $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->lang['qty'], self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
             // $this->Cell($this->columnSpacing, 10, '', 0, 0, 'L', 0);
-            $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->lang['price'], self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
             // $this->Cell($this->columnSpacing, 10, '', 0, 0, 'L', 0);
             // $this->Cell($width_other, 10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->lang['total'], self::ICONV_CHARSET_INPUT)), 0, 0, 'C', 0);
             $this->Ln();
@@ -538,6 +554,7 @@ class InvoicePrinter extends FPDF
                     }
                 }
                 $cHeight = $cellHeight;
+                // $cHeight = $this->isRental ? $cellHeight * 2 : $cellHeight;
                 $this->SetFont($this->font, 'b', 8);
                 $this->SetTextColor(50, 50, 50);
                 $this->SetFillColor($bgcolor, $bgcolor, $bgcolor);
@@ -567,13 +584,18 @@ class InvoicePrinter extends FPDF
                 $this->SetTextColor(50, 50, 50);
                 $this->SetFont($this->font, '', 8);
                 $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
-                // $this->Cell($width_other, $cHeight, $item['quantity'], 0, 0, 'C', 1);
-                // $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
-                $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,
-                    $this->price($item['price'])), 0, 0, 'C', 1);
-                // $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
-                // $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,
-                //     $this->price($item['total'])), 0, 0, 'C', 1);
+                if ($this->isRental) {
+                    $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,$item['model']), 0, 0, 'C', 1);
+                    $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
+                    $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,$item['start_stop']), 0, 0, 'C', 1);
+                    $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
+                    $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,
+                        $this->price($item['price'])), 0, 0, 'C', 1);
+                }
+                else {
+                    $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,
+                        $this->price($item['price'])), 0, 0, 'C', 1);
+                }
                 $this->Ln();
                 $this->Ln($this->columnSpacing);
             }
@@ -597,19 +619,45 @@ class InvoicePrinter extends FPDF
                     $this->SetFillColor($this->color[0], $this->color[1], $this->color[2]);
                 }
                 $this->SetFont($this->font, 'b', 8);
-                $this->Cell(1 + $this->firstColumnWidth - $width_other + 1 + 25, $cellHeight, '', 0, 0, 'L', 0);
-                $this->Cell($width_other - 25 - 1, $cellHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, $total['name']), 0, 0, 'L',
-                    1);
-                $this->Cell($this->columnSpacing, $cellHeight, '', 0, 0, 'L', 0);
-                $this->SetFont($this->font, 'b', 8);
-                $this->SetFillColor($bgcolor, $bgcolor, $bgcolor);
-                if ($total['colored']) {
-                    $this->SetTextColor(255, 255, 255);
-                    $this->SetFillColor($this->color[0], $this->color[1], $this->color[2]);
+                if(!$this->isRental) {
+                    $this->Cell(1 + $this->firstColumnWidth - $width_other + 1 + 25, $cellHeight, '', 0, 0, 'L', 0);
+                    $this->Cell($width_other - 25 - 1, $cellHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, $total['name']), 0, 0, 'L',
+                        1);
+                    $this->Cell($this->columnSpacing, $cellHeight, '', 0, 0, 'L', 0);
+                    $this->SetFont($this->font, 'b', 8);
+                    $this->SetFillColor($bgcolor, $bgcolor, $bgcolor);
+                    if ($total['colored']) {
+                        $this->SetTextColor(255, 255, 255);
+                        $this->SetFillColor($this->color[0], $this->color[1], $this->color[2]);
+                    }
+                    $this->Cell($width_other, $cellHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, $total['value']), 0, 0, 'C', 1);
+                    $this->Ln();
+                    $this->Ln($this->columnSpacing);
                 }
-                $this->Cell($width_other, $cellHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, $total['value']), 0, 0, 'C', 1);
-                $this->Ln();
-                $this->Ln($this->columnSpacing);
+                else {
+                    $this->Cell(1 + $this->firstColumnWidth, $cellHeight, '', 0, 0, 'L', 0);
+                    $this->Cell($this->columnSpacing, $cellHeight, '', 0, 0, 'L', 0);
+                    $this->Cell($width_other, $cellHeight, '', 0, 0, 'L', 0);
+                    $this->Cell($this->columnSpacing, $cellHeight, '', 0, 0, 'L', 0);
+                    if ($total['colored']) {
+                        $this->SetTextColor(255, 255, 255);
+                        $this->SetFillColor($this->color[0], $this->color[1], $this->color[2]);
+                    }
+                    $this->SetFont($this->font, 'b', 8);
+                    $this->Cell(1, $cellHeight, '', 0, 0, 'L', 1);
+                    $this->Cell($width_other - 1, $cellHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, $total['name']), 0, 0, 'L',
+                        1);
+                    $this->Cell($this->columnSpacing, $cellHeight, '', 0, 0, 'L', 0);
+                    $this->SetFont($this->font, 'b', 8);
+                    $this->SetFillColor($bgcolor, $bgcolor, $bgcolor);
+                    if ($total['colored']) {
+                        $this->SetTextColor(255, 255, 255);
+                        $this->SetFillColor($this->color[0], $this->color[1], $this->color[2]);
+                    }
+                    $this->Cell($width_other, $cellHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, $total['value']), 0, 0, 'C', 1);
+                    $this->Ln();
+                    $this->Ln($this->columnSpacing);
+                }
             }
         }
         $this->productsEnded = true;
@@ -709,6 +757,6 @@ class InvoicePrinter extends FPDF
 
     private function recalculateColumns()
     {
-        $this->columns = 2;
+        $this->columns = $this->isRental ? 4 : 2;
     }
 }

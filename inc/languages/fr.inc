@@ -5,9 +5,9 @@
     $lang['due']      = 'Date d\'échéance';
     $lang['to']       = 'Facturé à';
     $lang['from']     = 'Facturé par';
-    $lang['product']  = 'Produit';
+    $lang['product']  = '';
     $lang['qty']      = 'Quantité';
-    $lang['price']    = 'Prix';
+    $lang['price']    = 'Prix TTC';
     $lang['discount'] = 'Réduction';
     $lang['vat']      = 'TVA';
     $lang['total']    = 'Total';
