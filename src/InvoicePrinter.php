@@ -275,7 +275,8 @@ class InvoicePrinter extends FPDF
     {
         $p['item'] = $item;
         $p['description'] = $this->br2nl($description);
-        $p['price'] = $price;
+        // $p['description'] = str_replace('EUR', '€', $p['description']);
+        $p['price'] = number_format($price, 2, ',', ' ') . ' €';
         if (isset($model)) {
             $p['model'] = $model;
         }
@@ -295,7 +296,7 @@ class InvoicePrinter extends FPDF
         $t['name'] = $name;
         $t['value'] = $value;
         if (is_numeric($value)) {
-            $t['value'] = $this->price($value);
+            $t['value'] = number_format($value, 2, ',', ' ')   . ' €';
         }
         $t['colored'] = $colored;
         $this->totals[] = $t;
@@ -568,7 +569,7 @@ class InvoicePrinter extends FPDF
                     $this->SetTextColor(120, 120, 120);
                     $this->SetXY($x, $this->GetY() + 8);
                     $this->SetFont($this->font, '', $this->fontSizeProductDescription);
-                    $this->MultiCell($this->firstColumnWidth, floor($this->fontSizeProductDescription / 2), iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, $item['description']), 0,
+                    $this->MultiCell($this->firstColumnWidth, floor($this->fontSizeProductDescription / 2), str_replace('EUR', chr(128), iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, $item['description'])), 0,
                         'L', 1);
                     //Calculate Height
                     $newY = $this->GetY();
@@ -590,11 +591,11 @@ class InvoicePrinter extends FPDF
                     $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,$item['start_stop']), 0, 0, 'C', 1);
                     $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
                     $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,
-                        $this->price($item['price'])), 0, 0, 'C', 1);
+                        $item['price']), 0, 0, 'C', 1);
                 }
                 else {
                     $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,
-                        $this->price($item['price'])), 0, 0, 'C', 1);
+                        $item['price']), 0, 0, 'C', 1);
                 }
                 $this->Ln();
                 $this->Ln($this->columnSpacing);
@@ -666,7 +667,7 @@ class InvoicePrinter extends FPDF
 
         //Badge
         if ($this->badge) {
-            $badge = ' '.mb_strtoupper($this->badge, self::ICONV_CHARSET_INPUT).' ';
+            $badge = ' '.mb_strtoupper($this->badge, self::ICONV_CHARSET_INPUT);
             $resetX = $this->getX();
             $resetY = $this->getY();
             $this->setXY($badgeX, $badgeY + 15);
@@ -675,7 +676,7 @@ class InvoicePrinter extends FPDF
             $this->setTextColor($this->badgeColor[0], $this->badgeColor[1], $this->badgeColor[2]);
             $this->SetFont($this->font, 'b', 15);
             $this->Rotate(10, $this->getX(), $this->getY());
-            $this->Rect($this->GetX(), $this->GetY(), $this->GetStringWidth($badge) + 2, 10);
+            $this->Rect($this->GetX(), $this->GetY(), $this->GetStringWidth($badge) - 2, 10);
             $this->Write(10, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B, mb_strtoupper($badge, self::ICONV_CHARSET_INPUT)));
             $this->Rotate(0);
             if ($resetY > $this->getY() + 20) {
