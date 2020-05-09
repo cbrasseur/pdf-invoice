@@ -3,7 +3,7 @@
     $lang['date']     = 'Date de facturation';
     $lang['time']     = 'Heure de facturation';
     $lang['due']      = 'Date d\'échéance';
-    $lang['to']       = 'Facturé à';
+    $lang['to']       = 'À';
     $lang['from']     = 'Facturé par';
     $lang['product']  = '';
     $lang['qty']      = 'Quantité';
@@ -13,3 +13,6 @@
     $lang['total']    = 'Total';
     $lang['page']     = 'Page';
     $lang['page_of']  = 'sur';
+    $lang['intermediate']  = 'Par l\'intermédaire de';
+    $lang['model']  = 'Modèle';
+    $lang['schedule']  = 'Horaire';
