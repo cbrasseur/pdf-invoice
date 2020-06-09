@@ -277,7 +277,11 @@ class InvoicePrinter extends FPDF
         $p['description'] = $this->br2nl($description);
         $p['price'] = number_format($price, 2, ',', ' ') . ' €';
         if (isset($model)) {
-            $p['model'] = $model;
+            $splittedModel = explode( ',', $model);
+            $model = $splittedModel[0];
+            $licensePlate = $splittedModel[1];
+            $fullModel = $model . PHP_EOL . '(' . $licensePlate . ')';
+            $p['model'] = $this->br2nl($fullModel);
         }
         if (isset($start, $stop)) {
             $dtStart = new \DateTime($start);
@@ -598,7 +602,11 @@ class InvoicePrinter extends FPDF
                 $this->SetFont($this->font, '', 8);
                 $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
                 if ($this->isRental) {
-                    $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,$item['model']), 0, 0, 'C', 1);
+                    // $this->Cell($width_other, $cHeight, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_B,$item['model']), 0, 0, 'C', 1);
+                    $keepX = $this->GetX();
+                    $keepY = $this->GetY();
+                    $this->MultiCell($width_other, $cHeight / 2, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, $item['model']), 0, 'C', 1);
+                    $this->SetXY($keepX + $width_other, $keepY);
                     $this->Cell($this->columnSpacing, $cHeight, '', 0, 0, 'L', 0);
                     $keepX = $this->GetX();
                     $keepY = $this->GetY();
