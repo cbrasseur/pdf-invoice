@@ -58,11 +58,11 @@ class InvoicePrinter extends FPDF
     protected $isMerged = false;
 
     public function getIsMerged() {
-        return $this->$isMerged;
+        return $this->isMerged;
     }
 
     public function setIsMerged($value) {
-        $this->$isMerged = (bool)$value;
+        $this->isMerged = (bool)$value;
     }
 
     protected $isRental = false;
