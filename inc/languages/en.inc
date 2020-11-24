@@ -3,8 +3,8 @@
     $lang['date']     = 'Billing date';
     $lang['time']     = 'Billing time';
     $lang['due']      = 'Due date';
-    $lang['to']       = 'To';
-    $lang['from']     = 'Billing from';
+    $lang['to']       = 'Client';
+    $lang['from']     = 'Institution';
     $lang['product']  = 'Product';
     $lang['qty']      = 'Qty';
     $lang['price']    = 'Price';
