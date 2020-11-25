@@ -377,13 +377,21 @@ class InvoicePrinter extends FPDF
         }
 
         //Title
-        $this->SetTextColor(0, 0, 0);
+        $resetX = $this->GetX();
+        $resetY = $this->GetY();
+        $this->SetXY(0, 30);
+        $this->SetTextColor($this->color[0], $this->color[1], $this->color[2]);
+        $this->SetDrawColor($this->color[0], $this->color[1], $this->color[2]);
         $this->SetFont($this->font, 'B', 20);
         if (isset($this->title) and !empty($this->title)) {
-            $this->Cell(0, 5, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->title, self::ICONV_CHARSET_INPUT)), 0, 1, 'R');
+            $this->Cell(225, 5, iconv(self::ICONV_CHARSET_INPUT, self::ICONV_CHARSET_OUTPUT_A, mb_strtoupper($this->title, self::ICONV_CHARSET_INPUT)), 0, 1, 'C');            $this->Cell(0, 5, "", 0, 1, 'C');
         }
+        $this->SetTextColor(50, 50, 50);
+        $this->SetDrawColor(50, 50, 50);
         $this->SetFont($this->font, '', 10);
+        $this->SetXY($resetX, $resetY);
         $this->Ln(5);
+
 
         $lineheight = 5;
         //Calculate position of strings
